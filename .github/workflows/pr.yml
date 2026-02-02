@@ -9,30 +9,22 @@ jobs:
   lint-and-test:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v3
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v3
+      - uses: actions/checkout@v3
+      - uses: actions/setup-node@v3
         with:
           node-version: '18'
-
       - name: Install backend dependencies
         working-directory: ./backend
         run: npm ci
-
       - name: Run backend tests
         working-directory: ./backend
         run: npm test
-
       - name: Install frontend dependencies
         working-directory: ./frontend
         run: npm ci
-
       - name: Run frontend linter
         working-directory: ./frontend
         run: npm run lint --if-present
-
       - name: Run frontend tests
         working-directory: ./frontend
         run: npm test --if-present -- --passWithNoTests
@@ -40,11 +32,8 @@ jobs:
   build-check:
     runs-on: ubuntu-latest
     needs: lint-and-test
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v3
-
-      - name: Verify Docker builds
-        run: |
-          docker build -t test-backend ./backend
-          docker build -t test-frontend ./frontend
+    uses: ./.github/workflows/reusable-build.yml
+    with:
+      registry: ghcr.io
+      username: ''
+      password: ''
