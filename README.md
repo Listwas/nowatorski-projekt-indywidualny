@@ -1,163 +1,63 @@
+# Projekt: E-commerce App
 
-# Fronted taken from my repo
-https://github.com/Listwas/dsw-ecommerce
+**Autor:** Patryk Krajnik  
+**Nr indeksu:** 52716  
+**Kod kursu:** IAiSC
 
-# DSW E-Commerce - Full Stack Application
+---
 
-Projekt e-commerce z frontendem React, backendem Node.js/Express i bazą danych PostgreSQL.
+## Opis wykonanych działań
 
-## Struktura Projektu
+- **Backend**:  
+  - Express.js + Node 18, obsługuje API `/api/products` i `/api/health`  
+  - Połączenie z PostgreSQL (kontener `db`)  
+  - Multi-stage Dockerfile dla backendu  
+  - Obsługa zmiennych środowiskowych DB  
 
-```
-.
-├── frontend/           # Aplikacja React
-│   ├── src/
-│   ├── Dockerfile
-│   └── nginx.conf
-├── backend/            # API Node.js/Express
-│   ├── server.js
-│   ├── init.sql
-│   ├── Dockerfile
-│   └── package.json
-├── .github/
-│   └── workflows/      # GitHub Actions
-│       ├── main.yml    # Pipeline dla main branch
-│       └── pr.yml      # Pipeline dla Pull Requests
-└── docker-compose.yml  # Orkiestracja kontenerów
-```
+- **Frontend**:  
+  - React 18 + Vite  
+  - Multi-stage Dockerfile do produkcji z Nginx  
+  - Routing i podstawowe strony (AdminDashboard, PasswordReset)  
 
-## Wymagania
+- **Docker & Docker Compose**:  
+  - 3 kontenery: `db`, `backend`, `frontend`  
+  - `docker-compose.yml` uruchamia całość jednym poleceniem  
+  - Healthcheck dla bazy danych, restart unless-stopped  
 
-- Docker
-- Docker Compose
-- Node.js 18+ (do lokalnego developmentu)
+- **CI/CD (GitHub Actions)**:  
+  - `main.yml` = testy, lint, budowa Docker images, push do GHCR  
+  - `pr.yml` = testy i lint dla pull requestów  
+  - Reusable workflow dla build/test kroków  
 
-## Uruchomienie z Docker Compose
+- **Uzasadnienie**:  
+  - Projekt działa od razu po `docker-compose up -d`  
+  - Oddzielne kontenery, multi-stage builds i CI/CD spełniają wymagania 4.5  
+  - Frontend jest połączony z backendem, linter zgłasza nieużywane zmienne (do poprawy przy dalszym rozwoju)  
 
-```bash
-# Zbuduj i uruchom wszystkie kontenery
-docker-compose up -d
+---
 
-# Sprawdź status kontenerów
-docker-compose ps
+## Instrukcja uruchomienia projektu
 
-# Zobacz logi
-docker-compose logs -f
+### 1. Wymagania wstępne
+- Docker + Docker Compose  
+- Node.js (opcjonalnie do lokalnych testów)  
 
-# Zatrzymaj kontenery
-docker-compose down
-```
-
-Aplikacja będzie dostępna pod:
-- Frontend: http://localhost:80
-- Backend API: http://localhost:5000
-- PostgreSQL: localhost:5432
-
-## Uruchomienie Lokalne (Development)
-
-### Backend
-```bash
-cd backend
-npm install
-npm run dev
-```
-
-### Frontend
-```bash
-cd frontend
-npm install
-npm start
-```
-
-## Kontenery
-
-Projekt składa się z 3 kontenerów:
-
-1. **PostgreSQL Database** (`db`)
-   - Port: 5432
-   - Baza: ecommerce
-   - Inicjalizacja: `init.sql`
-
-2. **Backend API** (`backend`)
-   - Port: 5000
-   - Framework: Express.js
-   - Połączenie z bazą danych
-
-3. **Frontend** (`frontend`)
-   - Port: 80
-   - Framework: React
-   - Serwowane przez nginx
-
-## CI/CD Pipeline
-
-### Main Branch (`main.yml`)
-Uruchamia się przy push do main:
-- Testy backendu
-- Linting i testy frontendu
-- Build wszystkich kontenerów
-- Test uruchomienia aplikacji
-
-### Pull Requests (`pr.yml`)
-Uruchamia się przy PR do main:
-- Linting i testy
-- Weryfikacja buildów Docker
-
-## API Endpoints
-
-```
-GET  /api/health         - Health check
-GET  /api/products       - Lista produktów
-GET  /api/products/:id   - Szczegóły produktu
-POST /api/products       - Dodaj produkt (admin)
-```
-
-## Baza Danych
-
-### Tabela: products
-- id (SERIAL PRIMARY KEY)
-- title (VARCHAR)
-- price (DECIMAL)
-- image (TEXT)
-- description (TEXT)
-- created_at (TIMESTAMP)
-
-## Multi-Stage Build
-
-Oba Dockerfile'y używają multi-stage build:
-
-**Backend:**
-1. Stage 1: Instalacja dependencies
-2. Stage 2: Finalna minimalna imagea
-
-**Frontend:**
-1. Stage 1: Build aplikacji React
-2. Stage 2: Serwowanie przez nginx
-
-## Wymagania Projektowe (Ocena 4.0)
-
-✅ Aplikacja działa (frontend + API)  
-✅ Dockerfile z multi-stage build  
-✅ Docker Compose  
-✅ Pipeline CI z testami  
-✅ Oddzielne pipeline'y dla main i PR  
-✅ Baza danych (PostgreSQL)  
-✅ Co najmniej 2 kontenery (3 w praktyce)
-
-## Troubleshooting
-
-### Kontenery nie startują
-```bash
-docker-compose logs db
-docker-compose logs backend
-```
-
-### Reset całej aplikacji
-```bash
-docker-compose down -v
+### 2. Uruchomienie lokalne
+\`\`\`bash
+git clone <repo-url>
+cd nowatorski-projekt-indywidualny
 docker-compose up -d --build
-```
+\`\`\`
 
-### Czyszczenie Docker
-```bash
-docker system prune -a
-```
+### 3. Sprawdzenie działania
+- Backend: `http://localhost:5000/api/health` → powinno zwrócić `{"status":"ok","message":"Backend is running"}`  
+- Frontend: `http://localhost/` → strona główna aplikacji  
+
+### 4. Wyłączenie kontenerów
+\`\`\`bash
+docker-compose down
+\`\`\`
+
+### 5. CI/CD
+- Workflow automatycznie uruchamia testy i buduje obrazy Docker  
+- Obrazy są pushowane do GHCR (GitHub Container Registry) z użyciem secrets `REGISTRY_USERNAME` i `REGISTRY_PASSWORD`
